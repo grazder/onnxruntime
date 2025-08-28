@@ -76,7 +76,7 @@ namespace js {
 // class JsMultiProgramKernel : public OpKernel { /* TBD */ };
 
 EM_ASYNC_JS(
-    int, jsepRunKernelAsync,
+    int, jsepRun,
     (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),
     {
       const status = await Module.jsepRunKernelAsync(
@@ -213,7 +213,7 @@ class JsKernel : public OpKernel {
       return status;
     }
 
-    int status_code = jsepRunKernelAsync(
+    int status_code = jsepRun(
         reinterpret_cast<intptr_t>(this),
         reinterpret_cast<intptr_t>(p_serialized_kernel_context));
 
