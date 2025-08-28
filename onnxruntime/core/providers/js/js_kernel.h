@@ -15,11 +15,11 @@
 
 struct pthreadpool;
 
-namespace onnxruntime {
-namespace js {
-
 extern "C" int __jsepKernelRun_impl(intptr_t kernel_handle,
                                     intptr_t serialized_ctx_ptr);
+
+namespace onnxruntime {
+namespace js {
 
 static inline int jsepKernelRun(intptr_t kernel_handle,
                                 intptr_t serialized_ctx_ptr) {
