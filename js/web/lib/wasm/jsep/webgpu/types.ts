@@ -195,7 +195,7 @@ export interface ComputeContext {
    */
   readonly outputCount: number;
 
-  compute(program: ProgramInfo, inputsOutputsMapping?: ComputeContextInputsOutputsMapping): TensorView[];
+  compute(program: ProgramInfo, inputsOutputsMapping?: ComputeContextInputsOutputsMapping): Promise<TensorView[]>;
   output(index: number, dims: readonly number[]): number;
 }
 

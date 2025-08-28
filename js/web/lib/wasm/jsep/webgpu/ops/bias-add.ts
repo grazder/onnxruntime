@@ -59,7 +59,7 @@ const createBiasAddProgramInfo = (inputs: readonly TensorView[]): ProgramInfo =>
   };
 };
 
-export const biasAdd = (context: ComputeContext): void => {
+export const biasAdd = async (context: ComputeContext): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createBiasAddProgramInfo(context.inputs));
+  await context.compute(createBiasAddProgramInfo(context.inputs));
 };

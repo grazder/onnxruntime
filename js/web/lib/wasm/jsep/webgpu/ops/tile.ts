@@ -91,7 +91,7 @@ export const createTileProgramInfo = (inputs: readonly TensorView[], shape?: num
   };
 };
 
-export const tile = (context: ComputeContext): void => {
+export const tile = async (context: ComputeContext): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createTileProgramInfo(context.inputs), { inputs: [0] });
+  await context.compute(createTileProgramInfo(context.inputs), { inputs: [0] });
 };

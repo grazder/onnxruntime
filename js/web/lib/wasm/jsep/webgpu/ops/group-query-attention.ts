@@ -20,10 +20,10 @@ export interface GroupQueryAttentionAttributes {
   localWindowSize: number;
 }
 
-export const validateInputs = (
+export const validateInputs = async (
   inputs: readonly TensorView[],
   attributes: GroupQueryAttentionAttributes,
-): AttentionParameters => {
+): Promise<AttentionParameters> => {
   if (attributes.doRotary && inputs.length <= 7) {
     throw new Error('cos_cache and sin_cache inputs are required if do_rotary is specified');
   }
@@ -221,22 +221,27 @@ export const validateInputs = (
 
 const weightTransposeAttribute: TransposeAttributes = createAttributeWithCacheKey({ perm: [0, 2, 1, 3] });
 
-const maybeTransposeToBNSH = (context: ComputeContext, input: TensorView, params: AttentionParameters) => {
+const maybeTransposeToBNSH = async (context: ComputeContext, input: TensorView, params: AttentionParameters) => {
   let reshapedInput = input;
   const numHeads = params.kvNumHeads!;
   if (input.dims.length === 3 && params.kvSequenceLength !== 0) {
     reshapedInput = input.reshape([params.batchSize, params.kvSequenceLength, numHeads, params.headSize]);
-    reshapedInput = context.compute(createTransposeProgramInfo(reshapedInput, weightTransposeAttribute.perm), {
-      inputs: [reshapedInput],
-      outputs: [-1],
-    })[0];
+    reshapedInput = (
+      await context.compute(createTransposeProgramInfo(reshapedInput, weightTransposeAttribute.perm), {
+        inputs: [reshapedInput],
+        outputs: [-1],
+      })
+    )[0];
   }
 
   return reshapedInput;
 };
 
-export const groupQueryAttention = (context: ComputeContext, attributes: GroupQueryAttentionAttributes): void => {
-  const params = validateInputs(context.inputs, attributes);
+export const groupQueryAttention = async (
+  context: ComputeContext,
+  attributes: GroupQueryAttentionAttributes,
+): Promise<void> => {
+  const params = await validateInputs(context.inputs, attributes);
   if (context.inputs[0].dims.length === 5) {
     throw new Error('Packed QKV is not implemented');
   }
@@ -263,10 +268,10 @@ export const groupQueryAttention = (context: ComputeContext, attributes: GroupQu
   });
   const [query, key, value] =
     !k && !v
-      ? context.compute(createSplitProgramInfo([q], splitAttributes), { inputs: [q], outputs: [-1, -1, -1] })
+      ? await context.compute(createSplitProgramInfo([q], splitAttributes), { inputs: [q], outputs: [-1, -1, -1] })
       : [q, k!, v!];
 
-  const Q = maybeTransposeToBNSHAndAddBias(
+  const Q = await maybeTransposeToBNSHAndAddBias(
     context,
     params.batchSize,
     params.numHeads,
@@ -279,8 +284,8 @@ export const groupQueryAttention = (context: ComputeContext, attributes: GroupQu
   applyAttention(
     context,
     Q,
-    maybeTransposeToBNSH(context, key, params),
-    maybeTransposeToBNSH(context, value, params),
+    await maybeTransposeToBNSH(context, key, params),
+    await maybeTransposeToBNSH(context, value, params),
     undefined,
     undefined,
     pastKey,

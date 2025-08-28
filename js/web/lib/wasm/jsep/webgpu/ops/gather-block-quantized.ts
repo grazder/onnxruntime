@@ -180,10 +180,13 @@ const createGatherBlockQuantizedProgramInfo = (
   };
 };
 
-export const gatherBlockQuantized = (context: ComputeContext, attributes: GatherBlockQuantizedAttributes): void => {
+export const gatherBlockQuantized = async (
+  context: ComputeContext,
+  attributes: GatherBlockQuantizedAttributes,
+): Promise<void> => {
   const inputs = context.inputs;
   validateInputs(inputs, attributes);
-  context.compute(createGatherBlockQuantizedProgramInfo(context.inputs, attributes));
+  await context.compute(createGatherBlockQuantizedProgramInfo(context.inputs, attributes));
 };
 
 export const parseGatherBlockQuantizedAttributes = (

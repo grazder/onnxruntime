@@ -75,6 +75,19 @@ namespace js {
 // TODO:
 // class JsMultiProgramKernel : public OpKernel { /* TBD */ };
 
+EM_ASYNC_JS(
+    int, jsepRunKernelAsync,
+    (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),
+    {
+      const status = await Module.jsepRunKernelAsync(
+          Number(kernel_handle),
+          Number(serialized_ctx_ptr),
+          Module.jsepSessionState.sessionHandle,
+          Module.jsepSessionState.errors);
+      // Приводим к типу int, который будет возвращён в C++.
+      return Number(status);
+    });
+
 class JsKernel : public OpKernel {
  public:
   explicit JsKernel(const OpKernelInfo& info)
@@ -200,9 +213,9 @@ class JsKernel : public OpKernel {
       return status;
     }
 
-    intptr_t status_code = EM_ASM_INT(
-        { return Module.jsepRunKernel(Number($0), Number($1), Module.jsepSessionState.sessionHandle, Module.jsepSessionState.errors); },
-        this, reinterpret_cast<intptr_t>(p_serialized_kernel_context));
+    int status_code = jsepRunKernelAsync(
+        reinterpret_cast<intptr_t>(this),
+        reinterpret_cast<intptr_t>(p_serialized_kernel_context));
 
     LOGS_DEFAULT(VERBOSE) << "outputs = " << context->OutputCount() << ". Y.data="
                           << (size_t)(context->Output<Tensor>(0)->DataRaw()) << ".";

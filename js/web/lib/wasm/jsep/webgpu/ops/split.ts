@@ -128,11 +128,11 @@ export const createSplitProgramInfo = (inputs: readonly TensorView[], attributes
   };
 };
 
-export const split = (context: ComputeContext, attributes: SplitAttributes): void => {
+export const split = async (context: ComputeContext, attributes: SplitAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const updatedAttributes =
     context.inputs.length === 1 ? attributes : createSplitAttributesFromInputs(context.inputs, attributes);
-  context.compute(createSplitProgramInfo(context.inputs, updatedAttributes), { inputs: [0] });
+  await context.compute(createSplitProgramInfo(context.inputs, updatedAttributes), { inputs: [0] });
 };
 
 export const parseSplitAttributes = (attributes: Record<string, unknown>): SplitAttributes => {

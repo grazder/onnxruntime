@@ -126,8 +126,8 @@ const createGatherProgramInfo = (inputs: readonly TensorView[], attributes: Gath
 export const parseGatherAttributes = (attributes: Record<string, unknown>): GatherAttributes =>
   createAttributeWithCacheKey({ axis: attributes.axis as number });
 
-export const gather = (context: ComputeContext, attributes: GatherAttributes): void => {
+export const gather = async (context: ComputeContext, attributes: GatherAttributes): Promise<void> => {
   const inputs = context.inputs;
   validateInputs(inputs);
-  context.compute(createGatherProgramInfo(context.inputs, attributes));
+  await context.compute(createGatherProgramInfo(context.inputs, attributes));
 };

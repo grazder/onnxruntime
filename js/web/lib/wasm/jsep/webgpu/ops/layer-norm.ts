@@ -149,7 +149,7 @@ const createLayerNormProgramInfo = (
   };
 };
 
-export const layerNorm = (context: ComputeContext, attributes: LayerNormAttributes): void => {
+export const layerNorm = async (context: ComputeContext, attributes: LayerNormAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createLayerNormProgramInfo(context.inputs, attributes, context.outputCount));
+  await context.compute(createLayerNormProgramInfo(context.inputs, attributes, context.outputCount));
 };

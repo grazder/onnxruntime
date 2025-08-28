@@ -224,15 +224,15 @@ const createBinaryOpProgramInfo = (
   };
 };
 
-const runBinaryOp = (
+const runBinaryOp = async (
   context: ComputeContext,
   name: string,
   funcCall: BinaryFunctionCall,
   additionalImplementation?: string,
   cacheKey?: string,
   outputDataType?: number,
-): void => {
-  context.compute(
+): Promise<void> => {
+  await context.compute(
     createBinaryOpProgramInfo(
       name,
       cacheKey ?? '',
@@ -245,16 +245,16 @@ const runBinaryOp = (
   );
 };
 
-export const add = (context: ComputeContext): void => {
-  runBinaryOp(context, 'Add', (a, b) => `${a}+${b}`);
+export const add = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(context, 'Add', (a, b) => `${a}+${b}`);
 };
 
-export const div = (context: ComputeContext): void => {
-  runBinaryOp(context, 'Div', (a, b) => `${a}/${b}`);
+export const div = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(context, 'Div', (a, b) => `${a}/${b}`);
 };
 
-export const equal = (context: ComputeContext): void => {
-  runBinaryOp(
+export const equal = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(
     context,
     'Equal',
     { scalar: (a, b) => `u32(${a}==${b})`, vector: (a, b) => `vec4<u32>(${a}==${b})` },
@@ -264,14 +264,14 @@ export const equal = (context: ComputeContext): void => {
   );
 };
 
-export const mul = (context: ComputeContext): void => {
-  runBinaryOp(context, 'Mul', (a, b) => `${a}*${b}`);
+export const mul = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(context, 'Mul', (a, b) => `${a}*${b}`);
 };
 
-export const pow = (context: ComputeContext): void => {
+export const pow = async (context: ComputeContext): Promise<void> => {
   const type = inputVariable('input', context.inputs[0].dataType, context.inputs[0].dims).type.value;
   const roundStr = type === 'i32' ? 'round' : '';
-  runBinaryOp(
+  await runBinaryOp(
     context,
     'Pow',
     { scalar: (a, b) => `pow_custom(${a},${b})`, vector: (a, b) => `pow_vector_custom(${a},${b})` },
@@ -292,12 +292,12 @@ export const pow = (context: ComputeContext): void => {
   );
 };
 
-export const sub = (context: ComputeContext): void => {
-  runBinaryOp(context, 'Sub', (a, b) => `${a}-${b}`);
+export const sub = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(context, 'Sub', (a, b) => `${a}-${b}`);
 };
 
-export const greater = (context: ComputeContext): void => {
-  runBinaryOp(
+export const greater = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(
     context,
     'Greater',
     { scalar: (a, b) => `u32(${a}>${b})`, vector: (a, b) => `vec4<u32>(${a}>${b})` },
@@ -307,8 +307,8 @@ export const greater = (context: ComputeContext): void => {
   );
 };
 
-export const less = (context: ComputeContext): void => {
-  runBinaryOp(
+export const less = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(
     context,
     'Less',
     { scalar: (a, b) => `u32(${a}<${b})`, vector: (a, b) => `vec4<u32>(${a}<${b})` },
@@ -318,8 +318,8 @@ export const less = (context: ComputeContext): void => {
   );
 };
 
-export const greaterOrEqual = (context: ComputeContext): void => {
-  runBinaryOp(
+export const greaterOrEqual = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(
     context,
     'GreaterOrEqual',
     { scalar: (a, b) => `u32(${a}>=${b})`, vector: (a, b) => `vec4<u32>(${a}>=${b})` },
@@ -329,8 +329,8 @@ export const greaterOrEqual = (context: ComputeContext): void => {
   );
 };
 
-export const lessOrEqual = (context: ComputeContext): void => {
-  runBinaryOp(
+export const lessOrEqual = async (context: ComputeContext): Promise<void> => {
+  await runBinaryOp(
     context,
     'LessOrEqual',
     { scalar: (a, b) => `u32(${a}<=${b})`, vector: (a, b) => `vec4<u32>(${a}<=${b})` },

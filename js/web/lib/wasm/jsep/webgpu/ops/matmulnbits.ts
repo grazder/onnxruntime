@@ -434,16 +434,16 @@ export const createMatMulNBitsBlockSize32ProgramInfo = (
   };
 };
 
-export const matMulNBits = (context: ComputeContext, attributes: MatMulNBitsAttributes): void => {
+export const matMulNBits = async (context: ComputeContext, attributes: MatMulNBitsAttributes): Promise<void> => {
   validateInputs(context.inputs, attributes);
   if (
     attributes.blockSize === 32 &&
     context.adapterInfo.isVendor('intel') &&
     context.adapterInfo.isArchitecture('gen-12lp')
   ) {
-    context.compute(createMatMulNBitsBlockSize32ProgramInfo(context.inputs, attributes));
+    await context.compute(createMatMulNBitsBlockSize32ProgramInfo(context.inputs, attributes));
   } else {
-    context.compute(createMatMulNBitsProgramInfo(context.inputs, attributes));
+    await context.compute(createMatMulNBitsProgramInfo(context.inputs, attributes));
   }
 };
 

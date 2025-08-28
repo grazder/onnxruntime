@@ -90,7 +90,7 @@ export class ProgramManager {
   dispose(): void {
     // this.repo.forEach(a => this.glContext.deleteProgram(a.program));
   }
-  build(programInfo: ProgramInfo, normalizedDispatchGroupSize: [number, number, number]): Artifact {
+  async build(programInfo: ProgramInfo, normalizedDispatchGroupSize: [number, number, number]): Promise<Artifact> {
     TRACE_FUNC_BEGIN(programInfo.name);
     const device = this.backend.device;
     const enableDirectives: string[] = [];
@@ -113,7 +113,7 @@ export class ProgramManager {
     const shaderModule = device.createShaderModule({ code, label: programInfo.name });
     LOG_DEBUG('verbose', () => `[WebGPU] ${programInfo.name} shader code: ${code}`);
 
-    const computePipeline = device.createComputePipeline({
+    const computePipeline = await device.createComputePipelineAsync({
       compute: { module: shaderModule, entryPoint: 'main' },
       layout: 'auto',
       label: programInfo.name,

@@ -110,7 +110,7 @@ const createExpandProgramInfo = (inputs: readonly TensorView[]): ProgramInfo => 
   };
 };
 
-export const expand = (context: ComputeContext): void => {
+export const expand = async (context: ComputeContext): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createExpandProgramInfo(context.inputs), { inputs: [0] });
+  await context.compute(createExpandProgramInfo(context.inputs), { inputs: [0] });
 };

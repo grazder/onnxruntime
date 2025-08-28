@@ -56,7 +56,7 @@ import * as unaryOps from './ops/unary-op';
 import { where } from './ops/where';
 import { ComputeContext } from './types';
 
-export type RunFunction = (context: ComputeContext, attribute?: unknown) => void;
+export type RunFunction = (context: ComputeContext, attribute?: unknown) => Promise<void>;
 export type ParseAttributeFunction = (attributeRaw: unknown) => unknown;
 export type OperatorImplementation = [RunFunction] | [RunFunction, ParseAttributeFunction];
 
@@ -155,7 +155,7 @@ export const WEBGPU_OP_RESOLVE_RULES: Map<string, OperatorImplementation> = new 
   ['Sub', [binaryOps.sub]],
   ['Tan', [unaryOps.tan]],
   ['Tanh', [unaryOps.tanh]],
-  ['ThresholdedRelu', [unaryOps.thresholdedRelu, unaryOps.parseAlphaAttributes]],
+  // ['ThresholdedRelu', [unaryOps.thresholdedRelu, unaryOps.parseAlphaAttributes]],
   ['Tile', [tile]],
   ['Transpose', [transpose, parseTransposeAttributes]],
   ['Where', [where]],

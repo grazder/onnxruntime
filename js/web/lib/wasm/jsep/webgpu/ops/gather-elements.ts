@@ -96,8 +96,8 @@ const createGatherElementsProgramInfo = (
 export const parseGatherElementsAttributes = (attributes: Record<string, unknown>): GatherElementsAttributes =>
   createAttributeWithCacheKey({ axis: attributes.axis as number });
 
-export const gatherElements = (context: ComputeContext, attributes: GatherElementsAttributes): void => {
+export const gatherElements = async (context: ComputeContext, attributes: GatherElementsAttributes): Promise<void> => {
   const inputs = context.inputs;
   validateInputs(inputs);
-  context.compute(createGatherElementsProgramInfo(context.inputs, attributes));
+  await context.compute(createGatherElementsProgramInfo(context.inputs, attributes));
 };

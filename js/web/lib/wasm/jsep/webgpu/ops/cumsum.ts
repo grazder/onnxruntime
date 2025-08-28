@@ -65,11 +65,11 @@ const createCumsumProgramInfo = (
   };
 };
 
-export const cumsum = (context: ComputeContext, attributes: CumSumAttributes): void => {
+export const cumsum = async (context: ComputeContext, attributes: CumSumAttributes): Promise<void> => {
   const inputShape = context.inputs[0].dims;
   const inputType = context.inputs[0].dataType;
   const axis = context.inputs[1];
-  context.compute(createCumsumProgramInfo(inputType, inputShape, axis, attributes), { inputs: [0] });
+  await context.compute(createCumsumProgramInfo(inputType, inputShape, axis, attributes), { inputs: [0] });
 };
 
 export const parseCumSumAttributes = (attributes: Record<string, unknown>): CumSumAttributes => {

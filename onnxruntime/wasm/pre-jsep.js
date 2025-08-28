@@ -176,7 +176,7 @@ Module['jsepInit'] = (name, params) => {
      Module.jsepCopyAsync,
      Module.jsepCreateKernel,
      Module.jsepReleaseKernel,
-     Module.jsepRunKernel,
+     Module.jsepRunKernelAsync,
      Module.jsepCaptureBegin,
      Module.jsepCaptureEnd,
      Module.jsepReplay] = params;

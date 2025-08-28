@@ -24,7 +24,7 @@ export declare namespace JSEP {
     contextDataOffset: number,
     sessionHandle: number,
     errors: Array<Promise<string | null>>,
-  ) => number;
+  ) => Promise<number>;
   type CaptureBeginFunction = () => void;
   type CaptureEndFunction = () => void;
   type ReplayFunction = () => void;

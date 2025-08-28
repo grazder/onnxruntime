@@ -63,7 +63,7 @@ const createRangeProgramInfo = (start: number, limit: number, delta: number, dat
   };
 };
 
-export const range = (context: ComputeContext): void => {
+export const range = async (context: ComputeContext): Promise<void> => {
   let start = 0;
   let limit = 0;
   let delta = 0;
@@ -80,5 +80,5 @@ export const range = (context: ComputeContext): void => {
     validateInputsContent(start, limit, delta);
   }
 
-  context.compute(createRangeProgramInfo(start, limit, delta, context.inputs[0].dataType), { inputs: [] });
+  await context.compute(createRangeProgramInfo(start, limit, delta, context.inputs[0].dataType), { inputs: [] });
 };

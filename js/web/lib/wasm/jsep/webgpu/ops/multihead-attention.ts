@@ -269,7 +269,7 @@ export const parseMultiHeadAttentionAttributes = (attributes: AttentionAttrs): A
 
 const weightTransposeAttribute: TransposeAttributes = createAttributeWithCacheKey({ perm: [0, 2, 1, 3] });
 
-const addBiasTranspose = (
+const addBiasTranspose = async (
   context: ComputeContext,
   qkv: TensorView,
   bias: TensorView,
@@ -306,22 +306,24 @@ const addBiasTranspose = (
   }`;
   };
 
-  return context.compute(
-    {
-      name: 'MultiHeadAttentionAddBias',
-      shaderCache: { inputDependencies: ['type', 'type'] },
-      getRunData: () => ({
-        outputs: [{ dims: outputShape, dataType: qkv.dataType, gpuDataType: GpuDataType.default }],
-        dispatchGroup: { x: Math.ceil(outputSize / 64 /* workgroup size */) },
-        programUniforms,
-      }),
-      getShaderSource,
-    },
-    { inputs: [qkv, bias], outputs: [-1] },
+  return (
+    await context.compute(
+      {
+        name: 'MultiHeadAttentionAddBias',
+        shaderCache: { inputDependencies: ['type', 'type'] },
+        getRunData: () => ({
+          outputs: [{ dims: outputShape, dataType: qkv.dataType, gpuDataType: GpuDataType.default }],
+          dispatchGroup: { x: Math.ceil(outputSize / 64 /* workgroup size */) },
+          programUniforms,
+        }),
+        getShaderSource,
+      },
+      { inputs: [qkv, bias], outputs: [-1] },
+    )
   )[0];
 };
 
-export const maybeTransposeToBNSHAndAddBias = (
+export const maybeTransposeToBNSHAndAddBias = async (
   context: ComputeContext,
   batchSize: number,
   numHeads: number,
@@ -341,15 +343,17 @@ export const maybeTransposeToBNSHAndAddBias = (
     if (numHeads === 1 || sequenceLength === 1) {
       return reshapedInput;
     }
-    return context.compute(createTransposeProgramInfo(reshapedInput, weightTransposeAttribute.perm), {
-      inputs: [reshapedInput],
-      outputs: [-1],
-    })[0];
+    return (
+      await context.compute(createTransposeProgramInfo(reshapedInput, weightTransposeAttribute.perm), {
+        inputs: [reshapedInput],
+        outputs: [-1],
+      })
+    )[0];
   } else {
     if (sequenceLength === 1) {
       throw new Error('AddBiasReshape is not implemented. Please export your model with packed QKV or KV');
     } else {
-      reshapedInput = addBiasTranspose(
+      reshapedInput = await addBiasTranspose(
         context,
         input,
         bias,
@@ -362,15 +366,17 @@ export const maybeTransposeToBNSHAndAddBias = (
       if (numHeads === 1 || sequenceLength === 1) {
         return reshapedInput;
       }
-      return context.compute(createTransposeProgramInfo(reshapedInput, weightTransposeAttribute.perm), {
-        inputs: [reshapedInput],
-        outputs: [-1],
-      })[0];
+      return (
+        await context.compute(createTransposeProgramInfo(reshapedInput, weightTransposeAttribute.perm), {
+          inputs: [reshapedInput],
+          outputs: [-1],
+        })
+      )[0];
     }
   }
 };
 
-export const multiHeadAttention = (context: ComputeContext, attributes: AttentionAttrs): void => {
+export const multiHeadAttention = async (context: ComputeContext, attributes: AttentionAttrs): Promise<void> => {
   const params = validateInputs(context.inputs, attributes);
   const query = context.inputs[0];
   const key = getInput(context.inputs, 1);
@@ -391,7 +397,7 @@ export const multiHeadAttention = (context: ComputeContext, attributes: Attentio
   // applyAttention expects BNSH inputs
   const kvBNSH = key && value && key.dims.length === 4 && value.dims.length === 4;
 
-  const Q = maybeTransposeToBNSHAndAddBias(
+  const Q = await maybeTransposeToBNSHAndAddBias(
     context,
     params.batchSize,
     params.numHeads,
@@ -403,12 +409,23 @@ export const multiHeadAttention = (context: ComputeContext, attributes: Attentio
   );
 
   if (kvBNSH) {
-    return applyAttention(context, Q, key, value, keyPaddingMask, undefined, pastKey, pastValue, attentionBias, params);
+    return await applyAttention(
+      context,
+      Q,
+      key,
+      value,
+      keyPaddingMask,
+      undefined,
+      pastKey,
+      pastValue,
+      attentionBias,
+      params,
+    );
   }
   if (!key || !value) {
     throw new Error('key and value must be provided');
   }
-  const K = maybeTransposeToBNSHAndAddBias(
+  const K = await maybeTransposeToBNSHAndAddBias(
     context,
     params.batchSize,
     params.numHeads,
@@ -419,7 +436,7 @@ export const multiHeadAttention = (context: ComputeContext, attributes: Attentio
     params.hiddenSize,
   );
 
-  const V = maybeTransposeToBNSHAndAddBias(
+  const V = await maybeTransposeToBNSHAndAddBias(
     context,
     params.batchSize,
     params.numHeads,

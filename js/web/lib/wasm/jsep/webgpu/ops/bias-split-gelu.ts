@@ -67,7 +67,7 @@ const createBiasSplitGeluProgramInfo = (inputs: readonly TensorView[]): ProgramI
   };
 };
 
-export const biasSplitGelu = (context: ComputeContext): void => {
+export const biasSplitGelu = async (context: ComputeContext): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createBiasSplitGeluProgramInfo(context.inputs));
+  await context.compute(createBiasSplitGeluProgramInfo(context.inputs));
 };

@@ -203,12 +203,12 @@ export const createReduceSharedProgramInfo = (
   };
 };
 
-const reduceCommon = (
+const reduceCommon = async (
   context: ComputeContext,
   name: string,
   attributes: ReduceAttributes,
   reduceType: 'sum' | 'sumSquare' | 'prod' | 'min' | 'max' | 'mean' | 'logSumExp' | 'l1' | 'l2' | 'logSum',
-): void => {
+): Promise<void> => {
   const updatedAttributes: ReduceAttributes =
     context.inputs.length === 1 ? attributes : createReduceAttributesFromInputs(context.inputs, attributes);
 
@@ -222,10 +222,12 @@ const reduceCommon = (
   let input = context.inputs[0];
   const permutedAxes = getAxesPermutation(axes, context.inputs[0].dims.length);
   if (permutedAxes.length > 0) {
-    input = context.compute(createTransposeProgramInfo(context.inputs[0], permutedAxes), {
-      inputs: [0],
-      outputs: [-1],
-    })[0];
+    input = (
+      await context.compute(createTransposeProgramInfo(context.inputs[0], permutedAxes), {
+        inputs: [0],
+        outputs: [-1],
+      })
+    )[0];
     axes = getInnerMostAxes(axes.length, input.dims.length);
   }
 
@@ -235,7 +237,7 @@ const reduceCommon = (
     finalOutputShape = expandShapeToKeepDim(outputShape, normalizeAxes);
   }
 
-  context.compute(
+  await context.compute(
     createReduceSharedProgramInfo(
       name,
       updatedAttributes.cacheKey,
@@ -249,42 +251,42 @@ const reduceCommon = (
   );
 };
 
-export const reduceMeanShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceMeanShared', attributes, 'mean');
+export const reduceMeanShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceMeanShared', attributes, 'mean');
 };
 
-export const reduceL1Shared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceL1Shared', attributes, 'l1');
+export const reduceL1Shared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceL1Shared', attributes, 'l1');
 };
 
-export const reduceL2Shared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceL2Shared', attributes, 'l2');
+export const reduceL2Shared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceL2Shared', attributes, 'l2');
 };
 
-export const reduceLogSumExpShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceLogSumExpShared', attributes, 'logSumExp');
+export const reduceLogSumExpShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceLogSumExpShared', attributes, 'logSumExp');
 };
 
-export const reduceMaxShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceMaxShared', attributes, 'max');
+export const reduceMaxShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceMaxShared', attributes, 'max');
 };
 
-export const reduceMinShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceMinShared', attributes, 'min');
+export const reduceMinShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceMinShared', attributes, 'min');
 };
 
-export const reduceProdShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceProdShared', attributes, 'prod');
+export const reduceProdShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceProdShared', attributes, 'prod');
 };
 
-export const reduceSumShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceSumShared', attributes, 'sum');
+export const reduceSumShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceSumShared', attributes, 'sum');
 };
 
-export const reduceSumSquareShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceSumSquareShared', attributes, 'sumSquare');
+export const reduceSumSquareShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceSumSquareShared', attributes, 'sumSquare');
 };
 
-export const reduceLogSumShared = (context: ComputeContext, attributes: ReduceAttributes): void => {
-  reduceCommon(context, 'ReduceLogSumShared', attributes, 'logSum');
+export const reduceLogSumShared = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
+  await reduceCommon(context, 'ReduceLogSumShared', attributes, 'logSum');
 };

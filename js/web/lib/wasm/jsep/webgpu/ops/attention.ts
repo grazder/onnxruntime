@@ -793,7 +793,7 @@ const createVxAttentionScoreProgramInfo = (
   };
 };
 
-export const applyAttention = (
+export const applyAttention = async (
   context: ComputeContext,
   q: TensorView,
   k: TensorView,
@@ -828,23 +828,25 @@ export const applyAttention = (
     inputsK.push(totalSequenceLengthInput);
   }
   // Run AttentionProbs
-  const probs = context.compute(
-    createAttentionProbsProgramInfo(
-      outputCount,
-      q,
-      k,
-      pastKey,
-      attentionBias,
-      parameters,
-      pastSequenceLength,
-      seqLens,
-      totalSequenceLengthInput,
-    ),
-    { inputs: inputsK, outputs: outputCount > 1 ? [-1, 1] : [-1] },
+  const probs = (
+    await context.compute(
+      createAttentionProbsProgramInfo(
+        outputCount,
+        q,
+        k,
+        pastKey,
+        attentionBias,
+        parameters,
+        pastSequenceLength,
+        seqLens,
+        totalSequenceLengthInput,
+      ),
+      { inputs: inputsK, outputs: outputCount > 1 ? [-1, 1] : [-1] },
+    )
   )[0];
 
   // Run Softmax
-  context.compute(
+  await context.compute(
     createInPlaceSoftmaxProgramInfo(
       probs,
       parameters.batchSize,
@@ -869,7 +871,7 @@ export const applyAttention = (
   if (totalSequenceLengthInput) {
     inputsV.push(totalSequenceLengthInput);
   }
-  context.compute(
+  await context.compute(
     createVxAttentionScoreProgramInfo(
       outputCount,
       probs,
@@ -887,7 +889,7 @@ export const applyAttention = (
   );
 };
 
-const prepare = (context: ComputeContext, parameters: AttentionParameters) => {
+const prepare = async (context: ComputeContext, parameters: AttentionParameters) => {
   const outputShape = [parameters.batchSize, parameters.numHeads, parameters.sequenceLength, parameters.headSize];
   const M = parameters.sequenceLength;
   const K = parameters.inputHiddenSize;
@@ -985,7 +987,7 @@ const prepare = (context: ComputeContext, parameters: AttentionParameters) => {
   }`;
   };
 
-  return context.compute(
+  return await context.compute(
     {
       name: 'AttentionPrepare',
       shaderCache: { inputDependencies: ['type', 'type', 'type'] },
@@ -1004,10 +1006,10 @@ const prepare = (context: ComputeContext, parameters: AttentionParameters) => {
   );
 };
 
-export const attention = (context: ComputeContext, attributes: AttentionAttrs): void => {
+export const attention = async (context: ComputeContext, attributes: AttentionAttrs): Promise<void> => {
   const params = validateAttentionInputs(context.inputs, attributes);
 
-  const [q, k, v] = prepare(context, params);
+  const [q, k, v] = await prepare(context, params);
 
   return applyAttention(
     context,

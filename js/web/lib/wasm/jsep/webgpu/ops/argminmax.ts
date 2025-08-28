@@ -27,7 +27,7 @@ export interface ArgMinMaxAttributes extends AttributeWithCacheKey {
   selectLastIndex: number;
 }
 
-export const argMin = (context: ComputeContext, attributes: ArgMinMaxAttributes): void => {
+export const argMin = async (context: ComputeContext, attributes: ArgMinMaxAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const argMinMaxOp: ReduceOp = (input, output, axes) => {
     const idxZero = [];
@@ -48,7 +48,7 @@ export const argMin = (context: ComputeContext, attributes: ArgMinMaxAttributes)
     ];
   };
 
-  context.compute(
+  await context.compute(
     createReduceProgramInfo(
       'ArgMin',
       { hint: attributes.cacheKey, inputDependencies: ['rank'] },
@@ -62,7 +62,7 @@ export const argMin = (context: ComputeContext, attributes: ArgMinMaxAttributes)
   );
 };
 
-export const argMax = (context: ComputeContext, attributes: ArgMinMaxAttributes): void => {
+export const argMax = async (context: ComputeContext, attributes: ArgMinMaxAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const argMinMaxOp: ReduceOp = (input, output, axes) => {
     const idxZero = [];
@@ -83,7 +83,7 @@ export const argMax = (context: ComputeContext, attributes: ArgMinMaxAttributes)
     ];
   };
 
-  context.compute(
+  await context.compute(
     createReduceProgramInfo(
       'argMax',
       { hint: attributes.cacheKey, inputDependencies: ['rank'] },

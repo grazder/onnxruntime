@@ -178,7 +178,10 @@ const createRotaryEmbeddingProgramInfo = (
   };
 };
 
-export const rotaryEmbedding = (context: ComputeContext, attributes: RotaryEmbeddingAttributes): void => {
+export const rotaryEmbedding = async (
+  context: ComputeContext,
+  attributes: RotaryEmbeddingAttributes,
+): Promise<void> => {
   validateInputs(context.inputs, attributes);
-  context.compute(createRotaryEmbeddingProgramInfo(context.inputs, attributes));
+  await context.compute(createRotaryEmbeddingProgramInfo(context.inputs, attributes));
 };

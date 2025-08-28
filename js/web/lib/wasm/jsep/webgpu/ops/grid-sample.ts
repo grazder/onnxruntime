@@ -265,9 +265,9 @@ const createGridSampleProgramInfo = (inputs: readonly TensorView[], attributes: 
   };
 };
 
-export const gridSample = (context: ComputeContext, attributes: GridSampeAttributes): void => {
+export const gridSample = async (context: ComputeContext, attributes: GridSampeAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createGridSampleProgramInfo(context.inputs, attributes));
+  await context.compute(createGridSampleProgramInfo(context.inputs, attributes));
 };
 
 export const parseGridSampleAttributes = (attributes: Record<string, unknown>): GridSampeAttributes =>
