@@ -18,6 +18,9 @@ struct pthreadpool;
 namespace onnxruntime {
 namespace js {
 
+extern "C" int __jsepKernelRun_impl(intptr_t kernel_handle,
+                                    intptr_t serialized_ctx_ptr);
+
 static inline int jsepKernelRun(intptr_t kernel_handle,
                                 intptr_t serialized_ctx_ptr) {
   // EM_ASYNC_JS всегда объявляет внешнюю функцию, поэтому оборачиваем её
