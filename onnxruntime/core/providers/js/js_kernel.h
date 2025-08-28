@@ -15,6 +15,19 @@
 
 struct pthreadpool;
 
+EM_ASYNC_JS(
+    int, jsepKernelRun,
+    (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),
+    {
+      const status = await Module.jsepRunKernelAsync(
+          Number(kernel_handle),
+          Number(serialized_ctx_ptr),
+          Module.jsepSessionState.sessionHandle,
+          Module.jsepSessionState.errors);
+      // Приводим к типу int, который будет возвращён в C++.
+      return Number(status);
+    });
+
 namespace onnxruntime {
 namespace js {
 
@@ -74,19 +87,6 @@ namespace js {
 
 // TODO:
 // class JsMultiProgramKernel : public OpKernel { /* TBD */ };
-
-EM_ASYNC_JS(
-    int, jsepRun,
-    (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),
-    {
-      const status = await Module.jsepRunKernelAsync(
-          Number(kernel_handle),
-          Number(serialized_ctx_ptr),
-          Module.jsepSessionState.sessionHandle,
-          Module.jsepSessionState.errors);
-      // Приводим к типу int, который будет возвращён в C++.
-      return Number(status);
-    });
 
 class JsKernel : public OpKernel {
  public:
@@ -213,7 +213,7 @@ class JsKernel : public OpKernel {
       return status;
     }
 
-    int status_code = jsepRun(
+    int status_code = jsepKernelRun(
         reinterpret_cast<intptr_t>(this),
         reinterpret_cast<intptr_t>(p_serialized_kernel_context));
 
