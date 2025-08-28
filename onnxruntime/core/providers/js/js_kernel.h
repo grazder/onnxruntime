@@ -15,8 +15,8 @@
 
 struct pthreadpool;
 
-extern "C" static inline int jsepKernelRun(intptr_t kernel_handle,
-                                           intptr_t serialized_ctx_ptr);
+extern "C" int jsepKernelRun(intptr_t kernel_handle,
+                             intptr_t serialized_ctx_ptr);
 
 namespace onnxruntime {
 namespace js {

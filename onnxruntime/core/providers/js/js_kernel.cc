@@ -16,8 +16,8 @@ EM_ASYNC_JS(
     });
 
 extern "C" {
-static inline int jsepKernelRun(intptr_t kernel_handle,
-                                intptr_t serialized_ctx_ptr) {
+int jsepKernelRun(intptr_t kernel_handle,
+                  intptr_t serialized_ctx_ptr) {
   return __jsepKernelRun_impl(kernel_handle, serialized_ctx_ptr);
 }
 }  // extern "C"
