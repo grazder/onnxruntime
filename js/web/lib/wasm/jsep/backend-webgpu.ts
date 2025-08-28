@@ -219,7 +219,7 @@ export class WebGpuBackend {
   kernels: Map<number, KernelInfo>;
   private commandEncoder: GPUCommandEncoder | null = null;
   private computePassEncoder: GPUComputePassEncoder | null = null;
-  maxDispatchNumber = 16;
+  maxDispatchNumber = 1;
   pendingDispatchNumber = 0;
 
   // info of kernels pending submission for a single batch
