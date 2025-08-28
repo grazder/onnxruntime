@@ -15,16 +15,11 @@
 
 struct pthreadpool;
 
-extern "C" int __jsepKernelRun_impl(intptr_t kernel_handle,
-                                    intptr_t serialized_ctx_ptr);
+extern "C" static inline int jsepKernelRun(intptr_t kernel_handle,
+                                           intptr_t serialized_ctx_ptr);
 
 namespace onnxruntime {
 namespace js {
-
-static inline int jsepKernelRun(intptr_t kernel_handle,
-                                intptr_t serialized_ctx_ptr) {
-  return __jsepKernelRun_impl(kernel_handle, serialized_ctx_ptr);
-}
 
 // This macro is defined to bypass the code format from clang-format, which will overwrite "=>" into "= >"
 // We can use it to write JS inline code with arrow functions.

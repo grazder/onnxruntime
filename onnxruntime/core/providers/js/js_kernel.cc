@@ -3,7 +3,6 @@
 
 #include "js_kernel.h"
 
-extern "C" {
 EM_ASYNC_JS(
     int, __jsepKernelRun_impl,
     (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),
@@ -15,6 +14,12 @@ EM_ASYNC_JS(
           Module.jsepSessionState.errors);
       return Number(status);
     });
+
+extern "C" {
+static inline int jsepKernelRun(intptr_t kernel_handle,
+                                intptr_t serialized_ctx_ptr) {
+  return __jsepKernelRun_impl(kernel_handle, serialized_ctx_ptr);
+}
 }  // extern "C"
 
 namespace onnxruntime {
