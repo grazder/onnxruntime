@@ -23,10 +23,6 @@ extern "C" int __jsepKernelRun_impl(intptr_t kernel_handle,
 
 static inline int jsepKernelRun(intptr_t kernel_handle,
                                 intptr_t serialized_ctx_ptr) {
-  // EM_ASYNC_JS всегда объявляет внешнюю функцию, поэтому оборачиваем её
-  // в отдельный static‑inline «обёрточный» слой.
-  // Реальная реализация находится в отдельном .cpp‑файле (см. способ 1),
-  // а здесь только упрощённый вызов.
   return __jsepKernelRun_impl(kernel_handle, serialized_ctx_ptr);
 }
 

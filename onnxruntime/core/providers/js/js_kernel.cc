@@ -3,6 +3,8 @@
 
 #include "js_kernel.h"
 
+namespace onnxruntime {
+namespace js {
 EM_ASYNC_JS(
     int, __jsepKernelRun_impl,
     (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),
@@ -14,8 +16,5 @@ EM_ASYNC_JS(
           Module.jsepSessionState.errors);
       return Number(status);
     });
-
-namespace onnxruntime {
-namespace js {
 }  // namespace js
 }  // namespace onnxruntime
