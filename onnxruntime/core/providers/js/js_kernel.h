@@ -15,11 +15,23 @@
 
 struct pthreadpool;
 
-int jsepKernelRun(intptr_t kernel_handle,
-                  intptr_t serialized_ctx_ptr);
-
 namespace onnxruntime {
 namespace js {
+
+EM_ASYNC_JS(
+    int,                                                    // возврат в C++
+    jsepKernelRun,                                          // имя функции
+    (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),  // параметры
+    {
+      // Module.jsepRunKernelAsync должна вернуть Promise<int>
+      const status = await Module.jsepRunKernelAsync(
+          Number(kernel_handle),
+          Number(serialized_ctx_ptr),
+          Module.jsepSessionState.sessionHandle,
+          Module.jsepSessionState.errors);
+      // Приведение к C‑инту.
+      return Number(status);
+    });
 
 // This macro is defined to bypass the code format from clang-format, which will overwrite "=>" into "= >"
 // We can use it to write JS inline code with arrow functions.

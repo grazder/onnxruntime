@@ -3,19 +3,6 @@
 
 #include "js_kernel.h"
 
-EM_ASYNC_JS(
-    int, jsepKernelRun,
-    (intptr_t kernel_handle, intptr_t serialized_ctx_ptr),
-    {
-      const status = await Module.jsepRunKernelAsync(
-          Number(kernel_handle),
-          Number(serialized_ctx_ptr),
-          Module.jsepSessionState.sessionHandle,
-          Module.jsepSessionState.errors);
-      // Приводим к типу int, который будет возвращён в C++.
-      return Number(status);
-    });
-
 namespace onnxruntime {
 namespace js {
 }  // namespace js
