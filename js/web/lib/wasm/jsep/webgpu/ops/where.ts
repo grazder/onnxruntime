@@ -111,6 +111,6 @@ const createWhereOpProgramInfo = (inputs: readonly TensorView[]): ProgramInfo =>
   };
 };
 
-export const where = (context: ComputeContext): void => {
-  context.compute(createWhereOpProgramInfo(context.inputs));
+export const where = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createWhereOpProgramInfo(context.inputs));
 };

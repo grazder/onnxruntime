@@ -399,9 +399,9 @@ export const parseAveragePoolAttributes = (attributes: Record<string, unknown>):
   return { ...averagePoolAttributes, cacheKey: createAveragePoolShaderKeyFromAttributes(averagePoolAttributes) };
 };
 
-export const averagePool = (context: ComputeContext, attributes: AveragePoolAttributes): void => {
+export const averagePool = async (context: ComputeContext, attributes: AveragePoolAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createAveragePoolProgramInfo('AveragePool', context.inputs[0], false, attributes));
+  await context.compute(createAveragePoolProgramInfo('AveragePool', context.inputs[0], false, attributes));
 };
 
 const globalPoolAttributes = {
@@ -420,9 +420,9 @@ export const parseGlobalAveragePoolAttributes = (attributes: Record<string, unkn
   return { format, ...globalPoolAttributes, cacheKey: format };
 };
 
-export const globalAveragePool = (context: ComputeContext, attributes: AveragePoolAttributes): void => {
+export const globalAveragePool = async (context: ComputeContext, attributes: AveragePoolAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createAveragePoolProgramInfo('GlobalAveragePool', context.inputs[0], true, attributes));
+  await context.compute(createAveragePoolProgramInfo('GlobalAveragePool', context.inputs[0], true, attributes));
 };
 
 export interface MaxPoolAttributes extends PoolCommonAttributes, AttributeWithCacheKey {
@@ -481,9 +481,9 @@ const createMaxPoolProgramInfo = (
   };
 };
 
-export const maxPool = (context: ComputeContext, attributes: MaxPoolAttributes): void => {
+export const maxPool = async (context: ComputeContext, attributes: MaxPoolAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createMaxPoolProgramInfo('MaxPool', context.inputs[0], false, attributes));
+  await context.compute(createMaxPoolProgramInfo('MaxPool', context.inputs[0], false, attributes));
 };
 
 export const parseMaxPoolAttributes = (attributes: Record<string, unknown>): MaxPoolAttributes => {
@@ -507,7 +507,7 @@ export const parseGlobalMaxPoolAttributes = (attributes: Record<string, unknown>
   return { format, ...globalPoolAttributes, cacheKey: format };
 };
 
-export const globalMaxPool = (context: ComputeContext, attributes: MaxPoolAttributes): void => {
+export const globalMaxPool = async (context: ComputeContext, attributes: MaxPoolAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createMaxPoolProgramInfo('GlobalMaxPool', context.inputs[0], true, attributes));
+  await context.compute(createMaxPoolProgramInfo('GlobalMaxPool', context.inputs[0], true, attributes));
 };

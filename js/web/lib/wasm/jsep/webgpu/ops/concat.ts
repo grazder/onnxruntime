@@ -142,7 +142,7 @@ const createConcatProgramInfo = (
   };
 };
 
-export const concat = (context: ComputeContext, attributes: ConcatAttributes): void => {
+export const concat = async (context: ComputeContext, attributes: ConcatAttributes): Promise<void> => {
   const inputs = context.inputs;
   const inputShape = inputs[0].dims;
   const adjustedAxis = ShapeUtil.normalizeAxis(attributes.axis, inputShape.length);
@@ -154,7 +154,7 @@ export const concat = (context: ComputeContext, attributes: ConcatAttributes): v
   );
   // 0 length tensors are valid for concat, remove them
   const nonEmptyInputs = inputs.filter((input) => ShapeUtil.size(input.dims) > 0);
-  context.compute(createConcatProgramInfo(nonEmptyInputs, adjustedAxis, outputShape, inputs[0].dataType), {
+  await context.compute(createConcatProgramInfo(nonEmptyInputs, adjustedAxis, outputShape, inputs[0].dataType), {
     inputs: nonEmptyInputs,
   });
 };

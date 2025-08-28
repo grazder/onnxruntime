@@ -315,7 +315,7 @@ export const parseGemmAttributes = (attributes: Record<string, unknown>): GemmAt
   };
 };
 
-export const gemm = (context: ComputeContext, attributes: GemmAttributes): void => {
+export const gemm = async (context: ComputeContext, attributes: GemmAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createGemmProgramInfo(context.inputs, attributes));
+  await context.compute(createGemmProgramInfo(context.inputs, attributes));
 };

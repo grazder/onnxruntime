@@ -220,7 +220,7 @@ const createSkipLayerNormProgramInfo = (
   };
 };
 
-export const skipLayerNorm = (context: ComputeContext, attributes: SkipLayerNormAttributes): void => {
+export const skipLayerNorm = async (context: ComputeContext, attributes: SkipLayerNormAttributes): Promise<void> => {
   // TODO: initialize isTraining from ComputeContext
   const isTraining = false;
   validateInputs(context.inputs);
@@ -236,7 +236,7 @@ export const skipLayerNorm = (context: ComputeContext, attributes: SkipLayerNorm
   if (context.outputCount > 3) {
     outputs.push(3);
   }
-  context.compute(createSkipLayerNormProgramInfo(context.inputs, attributes, context.outputCount, isTraining), {
+  await context.compute(createSkipLayerNormProgramInfo(context.inputs, attributes, context.outputCount, isTraining), {
     outputs,
   });
 };

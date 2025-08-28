@@ -169,8 +169,8 @@ const createScatterNDProgramInfo = (inputs: readonly TensorView[], attributes: S
 export const parseScatterNDAttributes = (attributes: Record<string, unknown>): ScatterNDAttributes =>
   createAttributeWithCacheKey({ reduction: attributes.reduction as string });
 
-export const scatterND = (context: ComputeContext, attributes: ScatterNDAttributes): void => {
-  context.compute(createScatterNDProgramInfo(context.inputs, attributes), {
+export const scatterND = async (context: ComputeContext, attributes: ScatterNDAttributes): Promise<void> => {
+  await context.compute(createScatterNDProgramInfo(context.inputs, attributes), {
     inputs: [context.inputs[1], context.inputs[2]],
     outputs: [],
   });

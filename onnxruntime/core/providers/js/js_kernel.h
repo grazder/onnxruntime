@@ -15,6 +15,9 @@
 
 struct pthreadpool;
 
+extern "C" int jsepKernelRun(intptr_t kernel_handle,
+                             intptr_t serialized_ctx_ptr);
+
 namespace onnxruntime {
 namespace js {
 
@@ -200,9 +203,9 @@ class JsKernel : public OpKernel {
       return status;
     }
 
-    intptr_t status_code = EM_ASM_INT(
-        { return Module.jsepRunKernel(Number($0), Number($1), Module.jsepSessionState.sessionHandle, Module.jsepSessionState.errors); },
-        this, reinterpret_cast<intptr_t>(p_serialized_kernel_context));
+    int status_code = jsepKernelRun(
+        reinterpret_cast<intptr_t>(this),
+        reinterpret_cast<intptr_t>(p_serialized_kernel_context));
 
     LOGS_DEFAULT(VERBOSE) << "outputs = " << context->OutputCount() << ". Y.data="
                           << (size_t)(context->Output<Tensor>(0)->DataRaw()) << ".";

@@ -72,10 +72,10 @@ const createFastGeluProgramInfo = (inputTensors: readonly TensorView[]): Program
   };
 };
 
-export const fastGelu = (context: ComputeContext): void => {
+export const fastGelu = async (context: ComputeContext): Promise<void> => {
   if (context.inputs.length < 2 || ShapeUtil.size(context.inputs[1].dims) === 0) {
     unary.fastGelu(context);
   } else {
-    context.compute(createFastGeluProgramInfo(context.inputs));
+    await context.compute(createFastGeluProgramInfo(context.inputs));
   }
 };

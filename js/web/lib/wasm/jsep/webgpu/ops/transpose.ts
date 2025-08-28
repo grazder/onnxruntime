@@ -190,9 +190,9 @@ export const createTransposeProgramInfo = (inputTensor: TensorView, permAttr: nu
   };
 };
 
-export const transpose = (context: ComputeContext, attributes: TransposeAttributes): void => {
+export const transpose = async (context: ComputeContext, attributes: TransposeAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createTransposeProgramInfo(context.inputs[0], attributes.perm));
+  await context.compute(createTransposeProgramInfo(context.inputs[0], attributes.perm));
 };
 
 export const parseTransposeAttributes = (attributes: Record<string, unknown>): TransposeAttributes =>

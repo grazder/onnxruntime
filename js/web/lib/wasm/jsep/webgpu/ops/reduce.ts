@@ -143,17 +143,17 @@ export const createReduceAttributesFromInputs = (
   });
 };
 
-const runReduceProgram = (
+const runReduceProgram = async (
   context: ComputeContext,
   name: string,
   attributes: ReduceAttributes,
   reduceOp: ReduceOp,
-): void => {
+): Promise<void> => {
   const inputs = context.inputs;
   const updatedAttributes: ReduceAttributes =
     inputs.length === 1 ? attributes : createReduceAttributesFromInputs(inputs, attributes);
 
-  context.compute(
+  await context.compute(
     createReduceProgramInfo(
       name,
       { hint: updatedAttributes.cacheKey, inputDependencies: ['rank'] },
@@ -168,7 +168,7 @@ const runReduceProgram = (
   );
 };
 
-const reduceLogSumNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceLogSumNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output) => [
     `var value = ${output.type.storage}(0);`,
@@ -176,10 +176,10 @@ const reduceLogSumNaive = (context: ComputeContext, attributes: ReduceAttributes
     `value += ${input.getByIndices('input_indices')};`,
     'value = log(value);',
   ];
-  runReduceProgram(context, 'ReduceLogSum', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceLogSum', attributes, reduceOp);
 };
 
-const reduceL1Naive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceL1Naive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output) => [
     `var value = ${output.type.storage}(0);`,
@@ -187,10 +187,10 @@ const reduceL1Naive = (context: ComputeContext, attributes: ReduceAttributes): v
     `value += abs(${input.getByIndices('input_indices')});`,
     '',
   ];
-  runReduceProgram(context, 'ReduceL1', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceL1', attributes, reduceOp);
 };
 
-const reduceL2Naive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceL2Naive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output) => [
     `var t = ${output.type.value}(0); var value = ${output.type.value}(0);`,
@@ -198,10 +198,10 @@ const reduceL2Naive = (context: ComputeContext, attributes: ReduceAttributes): v
     `t = ${input.getByIndices('input_indices')}; value += (t * t);`,
     'value = sqrt(value);',
   ];
-  runReduceProgram(context, 'ReduceL2', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceL2', attributes, reduceOp);
 };
 
-const reduceLogSumExpNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceLogSumExpNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output) => [
     `var value = ${output.type.storage}(0);`,
@@ -209,10 +209,10 @@ const reduceLogSumExpNaive = (context: ComputeContext, attributes: ReduceAttribu
     `value += exp(${input.getByIndices('input_indices')});`,
     'value = log(value);',
   ];
-  runReduceProgram(context, 'ReduceLogSumExp', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceLogSumExp', attributes, reduceOp);
 };
 
-const reduceMaxNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceMaxNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, _output, axes) => {
     const idxZero = [];
@@ -229,10 +229,10 @@ const reduceMaxNaive = (context: ComputeContext, attributes: ReduceAttributes): 
       '',
     ];
   };
-  runReduceProgram(context, 'ReduceMax', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceMax', attributes, reduceOp);
 };
 
-const reduceMeanNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceMeanNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output, axes) => {
     let size = 1.0;
@@ -250,10 +250,10 @@ const reduceMeanNaive = (context: ComputeContext, attributes: ReduceAttributes):
       `let value = ${output.type.value}(sum / ${size});`,
     ];
   };
-  runReduceProgram(context, 'ReduceMean', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceMean', attributes, reduceOp);
 };
 
-const reduceMinNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceMinNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, _output, axes) => {
     const idxZero = [];
@@ -270,10 +270,10 @@ const reduceMinNaive = (context: ComputeContext, attributes: ReduceAttributes): 
       '',
     ];
   };
-  runReduceProgram(context, 'ReduceMin', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceMin', attributes, reduceOp);
 };
 
-const reduceProdNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceProdNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output) => [
     `var value = ${output.type.storage}(1);`,
@@ -281,10 +281,10 @@ const reduceProdNaive = (context: ComputeContext, attributes: ReduceAttributes):
     `value *= ${input.getByIndices('input_indices')};`,
     '',
   ];
-  runReduceProgram(context, 'ReduceProd', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceProd', attributes, reduceOp);
 };
 
-const reduceSumNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceSumNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output) => [
     `var value = ${output.type.storage}(0);`,
@@ -292,10 +292,10 @@ const reduceSumNaive = (context: ComputeContext, attributes: ReduceAttributes): 
     `value += ${input.getByIndices('input_indices')};`,
     '',
   ];
-  runReduceProgram(context, 'ReduceSum', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceSum', attributes, reduceOp);
 };
 
-const reduceSumSquareNaive = (context: ComputeContext, attributes: ReduceAttributes): void => {
+const reduceSumSquareNaive = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const reduceOp: ReduceOp = (input, output) => [
     `var t = ${output.type.value}(0); var value = ${output.type.value}(0);`,
@@ -303,7 +303,7 @@ const reduceSumSquareNaive = (context: ComputeContext, attributes: ReduceAttribu
     `t = ${input.getByIndices('input_indices')}; value += t * t;`,
     '',
   ];
-  runReduceProgram(context, 'ReduceSumSquare', attributes, reduceOp);
+  await runReduceProgram(context, 'ReduceSumSquare', attributes, reduceOp);
 };
 
 const useNaiveReduceMethod = (
@@ -331,82 +331,82 @@ const useNaiveReduceMethod = (
   return reduceSize < 32 && outputSize > 1024;
 };
 
-export const reduceMean = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceMean = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceMeanNaive(context, attributes);
+    await reduceMeanNaive(context, attributes);
   } else {
-    reduceMeanShared(context, attributes);
+    await reduceMeanShared(context, attributes);
   }
 };
 
-export const reduceL1 = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceL1 = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceL1Naive(context, attributes);
+    await reduceL1Naive(context, attributes);
   } else {
-    reduceL1Shared(context, attributes);
+    await reduceL1Shared(context, attributes);
   }
 };
 
-export const reduceL2 = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceL2 = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceL2Naive(context, attributes);
+    await reduceL2Naive(context, attributes);
   } else {
-    reduceL2Shared(context, attributes);
+    await reduceL2Shared(context, attributes);
   }
 };
 
-export const reduceLogSumExp = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceLogSumExp = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceLogSumExpNaive(context, attributes);
+    await reduceLogSumExpNaive(context, attributes);
   } else {
-    reduceLogSumExpShared(context, attributes);
+    await reduceLogSumExpShared(context, attributes);
   }
 };
 
-export const reduceMax = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceMax = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceMaxNaive(context, attributes);
+    await reduceMaxNaive(context, attributes);
   } else {
-    reduceMaxShared(context, attributes);
+    await reduceMaxShared(context, attributes);
   }
 };
 
-export const reduceMin = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceMin = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceMinNaive(context, attributes);
+    await reduceMinNaive(context, attributes);
   } else {
-    reduceMinShared(context, attributes);
+    await reduceMinShared(context, attributes);
   }
 };
 
-export const reduceProd = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceProd = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceProdNaive(context, attributes);
+    await reduceProdNaive(context, attributes);
   } else {
-    reduceProdShared(context, attributes);
+    await reduceProdShared(context, attributes);
   }
 };
 
-export const reduceSum = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceSum = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceSumNaive(context, attributes);
+    await reduceSumNaive(context, attributes);
   } else {
-    reduceSumShared(context, attributes);
+    await reduceSumShared(context, attributes);
   }
 };
 
-export const reduceSumSquare = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceSumSquare = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceSumSquareNaive(context, attributes);
+    await reduceSumSquareNaive(context, attributes);
   } else {
-    reduceSumSquareShared(context, attributes);
+    await reduceSumSquareShared(context, attributes);
   }
 };
 
-export const reduceLogSum = (context: ComputeContext, attributes: ReduceAttributes): void => {
+export const reduceLogSum = async (context: ComputeContext, attributes: ReduceAttributes): Promise<void> => {
   if (useNaiveReduceMethod(context.inputs[0].dims, attributes.axes, attributes.noopWithEmptyAxes)) {
-    reduceLogSumNaive(context, attributes);
+    await reduceLogSumNaive(context, attributes);
   } else {
-    reduceLogSumShared(context, attributes);
+    await reduceLogSumShared(context, attributes);
   }
 };

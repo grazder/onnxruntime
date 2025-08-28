@@ -13,7 +13,7 @@ export interface GatherNDAttributes extends AttributeWithCacheKey {
   readonly batchDims: number;
 }
 
-const computeSliceOffsets = (
+const computeSliceOffsets = async (
   context: ComputeContext,
   indicesData: TensorView,
   sizesFromSliceDimsData: number[],
@@ -80,22 +80,24 @@ const computeSliceOffsets = (
   }`;
   };
 
-  return context.compute(
-    {
-      name: 'computeSliceOffsets',
-      shaderCache: { hint: `${inputDims.length}_${sizesFromSliceDimsData.length}`, inputDependencies: ['rank'] },
-      getRunData: () => ({
-        outputs: [{ dims: outputShape, dataType: context.inputs[1].dataType }],
-        dispatchGroup: { x: Math.ceil(numSlices / 64) },
-        programUniforms,
-      }),
-      getShaderSource,
-    },
-    { inputs: [indicesData], outputs: [-1] },
+  return (
+    await context.compute(
+      {
+        name: 'computeSliceOffsets',
+        shaderCache: { hint: `${inputDims.length}_${sizesFromSliceDimsData.length}`, inputDependencies: ['rank'] },
+        getRunData: () => ({
+          outputs: [{ dims: outputShape, dataType: context.inputs[1].dataType }],
+          dispatchGroup: { x: Math.ceil(numSlices / 64) },
+          programUniforms,
+        }),
+        getShaderSource,
+      },
+      { inputs: [indicesData], outputs: [-1] },
+    )
   )[0];
 };
 
-export const gatherND = (context: ComputeContext, attributes: GatherNDAttributes) => {
+export const gatherND = async (context: ComputeContext, attributes: GatherNDAttributes) => {
   const inputs = context.inputs;
   const inputShape = inputs[0].dims;
   const inputType = inputs[0].dataType;
@@ -113,7 +115,7 @@ export const gatherND = (context: ComputeContext, attributes: GatherNDAttributes
     runningProduct *= inputShape[attributes.batchDims + numSliceDims - 1 - i];
   }
 
-  const inputSliceOffsets = computeSliceOffsets(
+  const inputSliceOffsets = await computeSliceOffsets(
     context,
     inputs[1],
     sizesFromSliceDims,
@@ -155,7 +157,7 @@ export const gatherND = (context: ComputeContext, attributes: GatherNDAttributes
           output[global_idx] = data[u32(slice_offset) + global_idx % uniforms.slice_size];
         }`;
   };
-  context.compute(
+  await context.compute(
     {
       name: 'GatherND',
       shaderCache: { hint: attributes.cacheKey, inputDependencies: ['rank', 'rank'] },

@@ -105,9 +105,9 @@ const createDepthToSpaceProgramInfo = (inputTensor: TensorView, attributes: Dept
   };
 };
 
-export const depthToSpace = (context: ComputeContext, attributes: DepthToSpaceAttributes): void => {
+export const depthToSpace = async (context: ComputeContext, attributes: DepthToSpaceAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  context.compute(createDepthToSpaceProgramInfo(context.inputs[0], attributes));
+  await context.compute(createDepthToSpaceProgramInfo(context.inputs[0], attributes));
 };
 
 export const parseDepthToSpaceAttributes = (attributes: Record<string, unknown>): DepthToSpaceAttributes =>

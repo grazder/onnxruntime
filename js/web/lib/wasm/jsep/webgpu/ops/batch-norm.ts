@@ -139,7 +139,7 @@ const createBatchNormInferenceProgramInfo = (
 export const parseBatchNormAttributes = (attributes: Record<string, unknown>): BatchNormAttributes =>
   createAttributeWithCacheKey(attributes as Omit<BatchNormAttributes, keyof AttributeWithCacheKey>);
 
-export const batchNorm = (context: ComputeContext, attributes: Record<string, unknown>): void => {
+export const batchNorm = async (context: ComputeContext, attributes: Record<string, unknown>): Promise<void> => {
   const { inputs, outputCount } = context;
   const updatedAttributes = parseBatchNormAttributes({ ...attributes, outputCount });
   if (env.webgpu.validateInputContent) {
@@ -148,6 +148,6 @@ export const batchNorm = (context: ComputeContext, attributes: Record<string, un
   if (attributes.trainingMode) {
     throw new Error('BatchNormalization trainingMode is not supported yet.');
   } else {
-    context.compute(createBatchNormInferenceProgramInfo(inputs, updatedAttributes));
+    await context.compute(createBatchNormInferenceProgramInfo(inputs, updatedAttributes));
   }
 };

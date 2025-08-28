@@ -226,19 +226,21 @@ const validateInputs = (inputs: readonly TensorView[], attributes: ConvTranspose
   }
 };
 
-const convTranspose2d = (
+const convTranspose2d = async (
   context: ComputeContext,
   inputs: readonly TensorView[],
   attributes: ConvTransposeAttributes,
   squeezeOutputShapeFunction?: (shape: readonly number[]) => number[],
-): void => {
+): Promise<void> => {
   // STEP.1: transpose weight
   const transposedWeight =
     (context.kernelCustomData.wT as TensorView | undefined) ??
-    context.compute(createTransposeProgramInfo(inputs[1], [2, 3, 0, 1]), {
-      inputs: [1],
-      outputs: [attributes.wIsConst ? -2 : -1],
-    })[0];
+    (
+      await context.compute(createTransposeProgramInfo(inputs[1], [2, 3, 0, 1]), {
+        inputs: [1],
+        outputs: [attributes.wIsConst ? -2 : -1],
+      })
+    )[0];
   if (attributes.wIsConst && !context.kernelCustomData.wT) {
     context.kernelCustomData.wT = transposedWeight;
   }
@@ -248,12 +250,12 @@ const convTranspose2d = (
   if (inputs.length === 3) {
     convTransposeInputs.push(inputs[2]);
   }
-  context.compute(createConvTranspose2DProgramInfo(convTransposeInputs, attributes, squeezeOutputShapeFunction), {
+  await context.compute(createConvTranspose2DProgramInfo(convTransposeInputs, attributes, squeezeOutputShapeFunction), {
     inputs: convTransposeInputs,
   });
 };
 
-const convTranspose1d = (context: ComputeContext, attributes: ConvTransposeAttributes): void => {
+const convTranspose1d = async (context: ComputeContext, attributes: ConvTransposeAttributes): Promise<void> => {
   // extend the input to 2D by adding H dimension
   const isChannelLast = attributes.format === 'NHWC';
 
@@ -296,17 +298,17 @@ const convTranspose1d = (context: ComputeContext, attributes: ConvTransposeAttri
     inputs,
   );
 
-  convTranspose2d(context, inputs, adjustedAttributes, (outputShape) =>
+  await convTranspose2d(context, inputs, adjustedAttributes, (outputShape) =>
     isChannelLast ? [outputShape[0], outputShape[2], outputShape[3]] : [outputShape[0], outputShape[1], outputShape[3]],
   );
 };
 
-export const convTranspose = (context: ComputeContext, attributes: ConvTransposeAttributes): void => {
+export const convTranspose = async (context: ComputeContext, attributes: ConvTransposeAttributes): Promise<void> => {
   validateInputs(context.inputs, attributes);
   if (context.inputs[0].dims.length === 3) {
-    convTranspose1d(context, attributes);
+    await convTranspose1d(context, attributes);
   } else {
     const adjustedAttributes = getAdjustedConvTransposeAttributes(attributes, context.inputs);
-    convTranspose2d(context, context.inputs, adjustedAttributes);
+    await convTranspose2d(context, context.inputs, adjustedAttributes);
   }
 };

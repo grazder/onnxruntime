@@ -18,7 +18,7 @@ const validateInputs = (inputs: readonly TensorView[]): void => {
   }
 };
 
-export const matMul = (context: ComputeContext): void => {
+export const matMul = async (context: ComputeContext): Promise<void> => {
   validateInputs(context.inputs);
   const outputShape = BroadcastUtil.calcShape(context.inputs[0].dims, context.inputs[1].dims, true);
   if (!outputShape) {
@@ -27,7 +27,7 @@ export const matMul = (context: ComputeContext): void => {
   const N = outputShape[outputShape.length - 1];
   const K = context.inputs[0].dims[context.inputs[0].dims.length - 1];
   if (N < 8 && K < 8) {
-    context.compute(createNaiveMatmulProgramInfo(context.inputs, { activation: '' }, outputShape));
+    await context.compute(createNaiveMatmulProgramInfo(context.inputs, { activation: '' }, outputShape));
   } else {
     const M = outputShape[outputShape.length - 2];
     const batchA = ShapeUtil.size(context.inputs[0].dims.slice(0, -2));
@@ -38,11 +38,11 @@ export const matMul = (context: ComputeContext): void => {
       const reshapedB = context.inputs[1].reshape([1, K, N]);
       const matmulOutputShape = [1, batchA, N];
       const matmulInputs = [reshapedA, reshapedB];
-      context.compute(createMatmulProgramInfo(matmulInputs, { activation: '' }, outputShape, matmulOutputShape), {
+      await context.compute(createMatmulProgramInfo(matmulInputs, { activation: '' }, outputShape, matmulOutputShape), {
         inputs: matmulInputs,
       });
     } else {
-      context.compute(createMatmulProgramInfo(context.inputs, { activation: '' }, outputShape));
+      await context.compute(createMatmulProgramInfo(context.inputs, { activation: '' }, outputShape));
     }
   }
 };

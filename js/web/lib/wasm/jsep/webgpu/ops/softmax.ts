@@ -31,7 +31,7 @@ export interface SoftmaxAttributes extends AttributeWithCacheKey {
   readonly axis: number;
 }
 
-const createSoftmaxProgramInfo = (context: ComputeContext, attributes: SoftmaxAttributes) => {
+const createSoftmaxProgramInfo = async (context: ComputeContext, attributes: SoftmaxAttributes) => {
   const input = context.inputs[0];
   const inputShape = input.dims;
   const outputSize = ShapeUtil.size(inputShape);
@@ -46,10 +46,12 @@ const createSoftmaxProgramInfo = (context: ComputeContext, attributes: SoftmaxAt
     perm[axis] = inputRank - 1;
     perm[inputRank - 1] = axis;
 
-    transposedInput = context.compute(createTransposeProgramInfo(input, perm), {
-      inputs: [input],
-      outputs: [-1],
-    })[0];
+    transposedInput = (
+      await context.compute(createTransposeProgramInfo(input, perm), {
+        inputs: [input],
+        outputs: [-1],
+      })
+    )[0];
   } else {
     transposedInput = input;
   }
@@ -156,34 +158,36 @@ const createSoftmaxProgramInfo = (context: ComputeContext, attributes: SoftmaxAt
           setValue(row, col, row_stride, value);
         }
       }`;
-  const result = context.compute(
-    {
-      name: 'Softmax',
-      // Note that in JSEP, WG size is not included in cache by default, but WebGPU EP it is.
-      shaderCache: { hint: `${components};${WG}`, inputDependencies: ['type'] },
-      getRunData: () => ({
-        outputs: [{ dims: transposedInputShape, dataType: transposedInput.dataType }],
-        dispatchGroup: { x: rows },
-        programUniforms: [{ type: DataType.int32, data: packedCols }],
-      }),
-      getShaderSource,
-    },
-    {
-      inputs: [transposedInput],
-      outputs: [isTransposeRequired ? -1 : 0],
-    },
+  const result = (
+    await context.compute(
+      {
+        name: 'Softmax',
+        // Note that in JSEP, WG size is not included in cache by default, but WebGPU EP it is.
+        shaderCache: { hint: `${components};${WG}`, inputDependencies: ['type'] },
+        getRunData: () => ({
+          outputs: [{ dims: transposedInputShape, dataType: transposedInput.dataType }],
+          dispatchGroup: { x: rows },
+          programUniforms: [{ type: DataType.int32, data: packedCols }],
+        }),
+        getShaderSource,
+      },
+      {
+        inputs: [transposedInput],
+        outputs: [isTransposeRequired ? -1 : 0],
+      },
+    )
   )[0];
 
   if (isTransposeRequired) {
-    context.compute(createTransposeProgramInfo(result, perm), {
+    await context.compute(createTransposeProgramInfo(result, perm), {
       inputs: [result],
     });
   }
 };
 
-export const softmax = (context: ComputeContext, attributes: SoftmaxAttributes): void => {
+export const softmax = async (context: ComputeContext, attributes: SoftmaxAttributes): Promise<void> => {
   validateInputs(context.inputs);
-  createSoftmaxProgramInfo(context, attributes);
+  await createSoftmaxProgramInfo(context, attributes);
 };
 
 export const parseSoftmaxAttributes = (attributes: Record<string, unknown>): SoftmaxAttributes =>

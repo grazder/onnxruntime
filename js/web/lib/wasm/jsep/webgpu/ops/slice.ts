@@ -208,10 +208,10 @@ const createSliceProgramInfo = (inputs: readonly TensorView[], attributes: Slice
   };
 };
 
-export const slice = (context: ComputeContext, attributes: SliceAttributes): void => {
+export const slice = async (context: ComputeContext, attributes: SliceAttributes): Promise<void> => {
   validateInputs(context.inputs, attributes);
   const updatedAttributes = createSliceAttributesFromInputs(context.inputs, attributes);
-  context.compute(createSliceProgramInfo(context.inputs, updatedAttributes), { inputs: [0] });
+  await context.compute(createSliceProgramInfo(context.inputs, updatedAttributes), { inputs: [0] });
   // if (ShapeUtil.size(program.outputs[0].dims) > 0) {
   //   context.compute(programInfoLoader, {inputs: [0]});
   // } else {

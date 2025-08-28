@@ -22,7 +22,7 @@ export interface InstanceNormAttributes {
   format: 'NHWC' | 'NCHW';
 }
 
-const computeChannelScaleShift = (
+const computeChannelScaleShift = async (
   context: ComputeContext,
   input: TensorView,
   scale: TensorView,
@@ -89,23 +89,25 @@ const computeChannelScaleShift = (
   }`;
   };
 
-  return context.compute(
-    {
-      name: 'InstanceNormComputeChannelScaleShift',
-      // TODO: use epsilon as uniform. Currently epsilon as uniform fails test_instancenorm_epsilon.
-      shaderCache: { hint: `${components};${epsilon};${workgroupSize}`, inputDependencies },
-      getRunData: () => ({
-        outputs: [{ dims: outputShape, dataType: DataType.float }],
-        dispatchGroup: { x: unitsOfWork },
-        programUniforms,
-      }),
-      getShaderSource,
-    },
-    { inputs: [input, scale, bias], outputs: [-1] },
+  return (
+    await context.compute(
+      {
+        name: 'InstanceNormComputeChannelScaleShift',
+        // TODO: use epsilon as uniform. Currently epsilon as uniform fails test_instancenorm_epsilon.
+        shaderCache: { hint: `${components};${epsilon};${workgroupSize}`, inputDependencies },
+        getRunData: () => ({
+          outputs: [{ dims: outputShape, dataType: DataType.float }],
+          dispatchGroup: { x: unitsOfWork },
+          programUniforms,
+        }),
+        getShaderSource,
+      },
+      { inputs: [input, scale, bias], outputs: [-1] },
+    )
   )[0];
 };
 
-const createInstanceNormProgramInfo = (
+const createInstanceNormProgramInfo = async (
   context: ComputeContext,
   inputs: readonly TensorView[],
   attributes: InstanceNormAttributes,
@@ -119,7 +121,7 @@ const createInstanceNormProgramInfo = (
   const components = getMaxComponents(H);
   const outputSize = ShapeUtil.size(outputShape) / components;
   // compute channel scale and channel shift.
-  const channelScaleShift = computeChannelScaleShift(
+  const channelScaleShift = await computeChannelScaleShift(
     context,
     inputs[0],
     inputs[1],
@@ -152,7 +154,7 @@ const createInstanceNormProgramInfo = (
   }`;
   };
 
-  context.compute(
+  await context.compute(
     {
       name: 'InstanceNormalization',
       shaderCache: { hint: `${components}`, inputDependencies },
@@ -170,7 +172,7 @@ const createInstanceNormProgramInfo = (
   );
 };
 
-const createInstanceNormNHWCProgramInfo = (
+const createInstanceNormNHWCProgramInfo = async (
   context: ComputeContext,
   inputs: readonly TensorView[],
   attributes: InstanceNormAttributes,
@@ -199,13 +201,15 @@ const createInstanceNormNHWCProgramInfo = (
   needTranspose = needTranspose && xShape[xShape.length - 1] !== 1;
 
   const transposedX = needTranspose
-    ? context.compute(createTransposeProgramInfo(context.inputs[0], transposedXPerm), {
-        inputs: [context.inputs[0]],
-        outputs: [-1],
-      })[0]
+    ? (
+        await context.compute(createTransposeProgramInfo(context.inputs[0], transposedXPerm), {
+          inputs: [context.inputs[0]],
+          outputs: [-1],
+        })
+      )[0]
     : context.inputs[0].reshape(Array.from({ length: xShape.length }, (_, i) => xShape[transposedXPerm[i]]));
   // 2. compute channel scale and channel shift.
-  const channelScaleShift = computeChannelScaleShift(
+  const channelScaleShift = await computeChannelScaleShift(
     context,
     transposedX,
     inputs[1],
@@ -251,7 +255,7 @@ const createInstanceNormNHWCProgramInfo = (
     output[global_idx] = fma(input[global_idx], ${scaleData(0)}, ${scaleData(1)});
   }`;
   };
-  context.compute(
+  await context.compute(
     {
       name: 'InstanceNormalizationNHWC',
       shaderCache: { hint: `${components}`, inputDependencies },
@@ -266,10 +270,10 @@ const createInstanceNormNHWCProgramInfo = (
   );
 };
 
-export const instanceNorm = (context: ComputeContext, attributes: InstanceNormAttributes): void => {
+export const instanceNorm = async (context: ComputeContext, attributes: InstanceNormAttributes): Promise<void> => {
   if (attributes.format === 'NHWC') {
-    createInstanceNormNHWCProgramInfo(context, context.inputs, attributes);
+    await createInstanceNormNHWCProgramInfo(context, context.inputs, attributes);
   } else {
-    createInstanceNormProgramInfo(context, context.inputs, attributes);
+    await createInstanceNormProgramInfo(context, context.inputs, attributes);
   }
 };

@@ -120,7 +120,10 @@ class ComputeContextImpl implements ComputeContext {
     this.inputs = inputs;
   }
 
-  compute(program: ProgramInfo, inputsOutputsMapping?: ComputeContextInputsOutputsMapping): TensorView[] {
+  async compute(
+    program: ProgramInfo,
+    inputsOutputsMapping?: ComputeContextInputsOutputsMapping,
+  ): Promise<TensorView[]> {
     // prepare inputs. inputs should always be valid data.
     const mappedInputs =
       inputsOutputsMapping?.inputs?.map((i) => (typeof i === 'number' ? this.inputs[i] : i)) ?? this.inputs;
@@ -136,7 +139,7 @@ class ComputeContextImpl implements ComputeContext {
       const gpuDataId = bufferSize > 0 ? this.backend.gpuDataManager.create(bufferSize).id : 0;
       return new TensorViewImpl(this.module, dataType, gpuDataId, dims);
     };
-    return this.backend.run(
+    return await this.backend.run(
       program,
       mappedInputs,
       outputIndices,
@@ -261,15 +264,15 @@ export const init = async (
       // jsepReleaseKernel
       (kernel: number) => backend.releaseKernel(kernel),
 
-      // jsepRun
-      (kernel: number, contextDataOffset: number, sessionHandle: number, errors: Array<Promise<string | null>>) => {
+      // jsepRunAsync
+      async (kernel: number, contextDataOffset: number, sessionHandle: number, errors: Array<Promise<string | null>>) => {
         LOG_DEBUG(
           'verbose',
           () =>
             `[WebGPU] jsepRun: sessionHandle=${sessionHandle}, kernel=${kernel}, contextDataOffset=${contextDataOffset}`,
         );
         const context = new ComputeContextImpl(module, backend, Number(contextDataOffset));
-        return backend.computeKernel(Number(kernel), context, errors);
+        return await backend.computeKernel(Number(kernel), context, errors);
       },
       // jsepCaptureBegin
       () => backend.captureBegin(),

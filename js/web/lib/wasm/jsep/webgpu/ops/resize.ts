@@ -784,7 +784,7 @@ const getOpsetVersionFromCustomDataBuffer = (context: ComputeContext): number =>
   return opsetVersion;
 };
 
-export const resize = (context: ComputeContext, attributes: ResizeAttributes): void => {
+export const resize = async (context: ComputeContext, attributes: ResizeAttributes): Promise<void> => {
   const scales: number[] = [];
   const sizes: number[] = [];
   const roi: number[] = [];
@@ -797,7 +797,7 @@ export const resize = (context: ComputeContext, attributes: ResizeAttributes): v
     throw Error('Only default value (0) for Antialias attribute is supported');
   }
   validateInputs(context.inputs, attributes, opsetVersion, scales, sizes, roi);
-  context.compute(createResizeProgramInfo(context.inputs[0], attributes, opsetVersion, scales, sizes, roi), {
+  await context.compute(createResizeProgramInfo(context.inputs[0], attributes, opsetVersion, scales, sizes, roi), {
     inputs: [0],
   });
 };

@@ -98,31 +98,31 @@ const createElementwiseProgramInfo = (
   };
 };
 
-export const abs = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Abs', 'abs'));
+export const abs = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Abs', 'abs'));
 };
 
-export const acos = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Acos', 'acos'));
+export const acos = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Acos', 'acos'));
 };
 
-export const acosh = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Acosh', 'acosh'));
+export const acosh = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Acosh', 'acosh'));
 };
 
-export const asin = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Asin', 'asin'));
+export const asin = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Asin', 'asin'));
 };
 
-export const asinh = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Asinh', 'asinh'));
+export const asinh = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Asinh', 'asinh'));
 };
 
-export const atan = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Atan', 'atan'));
+export const atan = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Atan', 'atan'));
 };
-export const atanh = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Atanh', 'atanh'));
+export const atanh = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Atanh', 'atanh'));
 };
 
 export interface CastAttributes extends AttributeWithCacheKey {
@@ -133,7 +133,7 @@ export interface CastAttributes extends AttributeWithCacheKey {
 export const parseCastAttributes = (attributes: Record<string, unknown>): CastAttributes =>
   createAttributeWithCacheKey(attributes as { to: number });
 
-export const cast = (context: ComputeContext, attributes: CastAttributes): void => {
+export const cast = async (context: ComputeContext, attributes: CastAttributes): Promise<void> => {
   let func: ElementwiseFunctionCall;
   switch (attributes.to) {
     case DataType.float16:
@@ -154,7 +154,7 @@ export const cast = (context: ComputeContext, attributes: CastAttributes): void 
     default:
       throw new RangeError(`not supported type (specified in attribute 'to' from 'Cast' operator): ${attributes.to}`);
   }
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(context.inputs[0], 'Cast', func, undefined, attributes.cacheKey, attributes.to),
   );
 };
@@ -186,10 +186,10 @@ const generateClipAttributesFromInputs = (inputs: readonly TensorView[]): ClipAt
   return createAttributeWithCacheKey({ min, max });
 };
 
-export const clip = (context: ComputeContext, clipAttributes: ClipAttributes): void => {
+export const clip = async (context: ComputeContext, clipAttributes: ClipAttributes): Promise<void> => {
   const attributes = clipAttributes ? clipAttributes : generateClipAttributesFromInputs(context.inputs);
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'Clip',
@@ -210,16 +210,16 @@ export const clip = (context: ComputeContext, clipAttributes: ClipAttributes): v
   );
 };
 
-export const ceil = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Ceil', 'ceil'));
+export const ceil = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Ceil', 'ceil'));
 };
 
-export const cos = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Cos', 'cos'));
+export const cos = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Cos', 'cos'));
 };
 
-export const cosh = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Cosh', 'cosh'));
+export const cosh = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Cosh', 'cosh'));
 };
 
 export interface AlphaAttributes extends AttributeWithCacheKey {
@@ -229,9 +229,9 @@ export interface AlphaAttributes extends AttributeWithCacheKey {
 export const parseAlphaAttributes = (attributes: Record<string, unknown>): AlphaAttributes =>
   createAttributeWithCacheKey(attributes as { alpha: number });
 
-export const elu = (context: ComputeContext, attributes: AlphaAttributes): void => {
+export const elu = async (context: ComputeContext, attributes: AlphaAttributes): Promise<void> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'Elu',
@@ -265,22 +265,24 @@ fn erf_vf32(v: vec4<${varType}>) -> vec4<${varType}> {
   return sign(v) * (1.0 - ((((r5 * x + r4) * x + r3) * x + r2) * x + r1) * x * exp(-absv * absv));
 }`;
 
-export const erf = (context: ComputeContext): void => {
+export const erf = async (context: ComputeContext): Promise<void> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Erf', (a) => `erf_vf32(${a})`, erfImpl(dataType)));
+  await context.compute(
+    createElementwiseProgramInfo(context.inputs[0], 'Erf', (a) => `erf_vf32(${a})`, erfImpl(dataType)),
+  );
 };
 
-export const exp = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Exp', 'exp'));
+export const exp = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Exp', 'exp'));
 };
 
-export const floor = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Floor', 'floor'));
+export const floor = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Floor', 'floor'));
 };
 
-export const gelu = (context: ComputeContext): void => {
+export const gelu = async (context: ComputeContext): Promise<void> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'Gelu',
@@ -290,9 +292,9 @@ export const gelu = (context: ComputeContext): void => {
   );
 };
 
-export const leakyRelu = (context: ComputeContext, attributes: AlphaAttributes): void => {
+export const leakyRelu = async (context: ComputeContext, attributes: AlphaAttributes): Promise<void> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'LeakyRelu',
@@ -303,21 +305,21 @@ export const leakyRelu = (context: ComputeContext, attributes: AlphaAttributes):
   );
 };
 
-export const not = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Not', (a) => `!${a}`));
+export const not = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Not', (a) => `!${a}`));
 };
 
-export const neg = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Neg', (a) => `-${a}`));
+export const neg = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Neg', (a) => `-${a}`));
 };
 
-export const reciprocal = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Reciprocal', (a) => `1.0/${a}`));
+export const reciprocal = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Reciprocal', (a) => `1.0/${a}`));
 };
 
-export const relu = (context: ComputeContext): void => {
+export const relu = async (context: ComputeContext): Promise<void> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'Relu',
@@ -326,8 +328,10 @@ export const relu = (context: ComputeContext): void => {
   );
 };
 
-export const sigmoid = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Sigmoid', (a) => `(1.0 / (1.0 + exp(-${a})))`));
+export const sigmoid = async (context: ComputeContext): Promise<void> => {
+  await context.compute(
+    createElementwiseProgramInfo(context.inputs[0], 'Sigmoid', (a) => `(1.0 / (1.0 + exp(-${a})))`),
+  );
 };
 
 export interface HardSigmoidAttributes extends AttributeWithCacheKey {
@@ -343,9 +347,9 @@ export const parseHardSigmoidAttributes = (attributes: Record<string, unknown>):
     },
   );
 
-export const hardSigmoid = (context: ComputeContext, attributes: HardSigmoidAttributes): void => {
+export const hardSigmoid = async (context: ComputeContext, attributes: HardSigmoidAttributes): Promise<void> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'HardSigmoid',
@@ -357,27 +361,27 @@ export const hardSigmoid = (context: ComputeContext, attributes: HardSigmoidAttr
   );
 };
 
-export const sin = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Sin', 'sin'));
+export const sin = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Sin', 'sin'));
 };
 
-export const sinh = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Sinh', 'sinh'));
+export const sinh = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Sinh', 'sinh'));
 };
 
-export const sqrt = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Sqrt', 'sqrt'));
+export const sqrt = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Sqrt', 'sqrt'));
 };
 
-export const tan = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Tan', 'tan'));
+export const tan = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Tan', 'tan'));
 };
 
 export const tanhExpression = (a: string) => `sign(${a}) * (1 - exp(-2 * abs(${a}))) / (1 + exp(-2 * abs(${a})))`;
 
-export const tanh = (context: ComputeContext): void => {
+export const tanh = async (context: ComputeContext): Promise<void> => {
   // TODO: revisit after https://github.com/gpuweb/gpuweb/issues/4458 is resolved
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Tanh', tanhExpression));
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Tanh', tanhExpression));
 };
 
 export const fastGeluImpl = (varType = 'f32') => `
@@ -393,9 +397,9 @@ fn tanh_v(v: vec4<${varType}>) -> vec4<${varType}> {
 export const fastGeluExpression = (x: string) =>
   `(fast_gelu_a + fast_gelu_a * tanh_v(${x} * (fast_gelu_c * ${x} * ${x} + fast_gelu_b))) * ${x}`;
 
-export const fastGelu = (context: ComputeContext): void => {
+export const fastGelu = async (context: ComputeContext): Promise<void> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'FastGelu',
@@ -407,9 +411,9 @@ export const fastGelu = (context: ComputeContext): void => {
   );
 };
 
-export const thresholdedRelu = (context: ComputeContext, attributes: AlphaAttributes): number => {
+export const thresholdedRelu = async (context: ComputeContext, attributes: AlphaAttributes): Promise<number> => {
   const dataType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'ThresholdedRelu',
@@ -421,8 +425,8 @@ export const thresholdedRelu = (context: ComputeContext, attributes: AlphaAttrib
   return 0;
 };
 
-export const log = (context: ComputeContext): void => {
-  context.compute(createElementwiseProgramInfo(context.inputs[0], 'Log', 'log'));
+export const log = async (context: ComputeContext): Promise<void> => {
+  await context.compute(createElementwiseProgramInfo(context.inputs[0], 'Log', 'log'));
 };
 
 export const quickGeluImpl = (varType: string, alpha: number) => `
@@ -446,9 +450,9 @@ fn quick_gelu_impl(x: vec4<${varType}>) -> vec4<${varType}> {
 
 export const quickGeluExpression = (x: string) => `quick_gelu_impl(${x})`;
 
-export const quickgelu = (context: ComputeContext, attributes: AlphaAttributes): void => {
+export const quickgelu = async (context: ComputeContext, attributes: AlphaAttributes): Promise<void> => {
   const dType = tensorTypeToWsglValueType(context.inputs[0].dataType);
-  context.compute(
+  await context.compute(
     createElementwiseProgramInfo(
       context.inputs[0],
       'QuickGelu',

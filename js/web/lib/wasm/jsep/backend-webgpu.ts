@@ -219,7 +219,8 @@ export class WebGpuBackend {
   kernels: Map<number, KernelInfo>;
   private commandEncoder: GPUCommandEncoder | null = null;
   private computePassEncoder: GPUComputePassEncoder | null = null;
-  maxDispatchNumber = 16;
+  // we need to dispatch each kernel separately to not create any blocks
+  maxDispatchNumber = 1;
   pendingDispatchNumber = 0;
 
   // info of kernels pending submission for a single batch
@@ -477,14 +478,14 @@ export class WebGpuBackend {
    * or persistent (owned by the current kernel)
    * @returns a TensorView array representing the result.
    */
-  run(
+  async run(
     program: ProgramInfo,
     inputTensorViews: readonly TensorView[],
     outputIndices: readonly number[],
     createKernelOutput: (index: number, dataType: number, dims: readonly number[]) => TensorView,
     createIntermediateOutput: (dataType: number, dims: readonly number[]) => TensorView,
     outputCount: number,
-  ): TensorView[] {
+  ): Promise<TensorView[]> {
     TRACE_FUNC_BEGIN(program.name);
     // create info for inputs
     const inputDatas: GpuData[] = [];
@@ -643,7 +644,7 @@ export class WebGpuBackend {
     const key = getProgramInfoUniqueKey(program, inputTensorViews, is1DimensionDispatch);
     let artifact = this.programManager.getArtifact(key);
     if (!artifact) {
-      artifact = this.programManager.build(program, normalizedDispatchGroup);
+      artifact = await this.programManager.build(program, normalizedDispatchGroup);
       this.programManager.setArtifact(key, artifact);
       LOG_DEBUG('info', () => `[artifact] key: ${key}, programName: ${program.name}`);
     }
@@ -751,7 +752,11 @@ export class WebGpuBackend {
     this.kernels.delete(kernelId);
   }
 
-  computeKernel(kernelId: number, context: ComputeContext, errors: Array<Promise<string | null>>): number {
+  async computeKernel(
+    kernelId: number,
+    context: ComputeContext,
+    errors: Array<Promise<string | null>>,
+  ): Promise<number> {
     const kernel = this.kernels.get(kernelId);
     if (!kernel) {
       throw new Error(`kernel not created: ${kernelId}`);
@@ -760,6 +765,10 @@ export class WebGpuBackend {
     const kernelName = kernel.kernelName;
     const kernelEntry = kernel.kernelEntry;
     const attributes = kernel.attributes;
+    LOG_DEBUG(
+      'info',
+      () => `[WebGPU] this.currentKernelId "[${kernelType}] ${kernelName}", ${this.currentKernelId}...`,
+    );
     if (this.currentKernelId !== null) {
       throw new Error(`kernel "[${kernelType}] ${kernelName}" is not allowed to be called recursively`);
     }
@@ -771,7 +780,7 @@ export class WebGpuBackend {
       attributes[0] = undefined;
     }
 
-    LOG_DEBUG('info', () => `[WebGPU] Start to run kernel "[${kernelType}] ${kernelName}"...`);
+    LOG_DEBUG('info', () => `[WebGPU] Start to run kernel "[${kernelType}] ${kernelName} ${this.currentKernelId}"...`);
 
     const useErrorScope = this.env.debug;
 
@@ -781,7 +790,7 @@ export class WebGpuBackend {
         this.device.pushErrorScope('validation');
       }
 
-      kernelEntry(context, attributes[1]);
+      await kernelEntry(context, attributes[1]);
       return 0; // ORT_OK
     } catch (e) {
       errors.push(Promise.resolve(`[WebGPU] Kernel "[${kernelType}] ${kernelName}" failed. ${e}`));

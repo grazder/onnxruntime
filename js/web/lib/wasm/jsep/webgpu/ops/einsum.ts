@@ -301,11 +301,11 @@ const createEinsumProgramInfo = (
   };
 };
 
-export const einsum = (context: ComputeContext, attributes: EinsumAttributes): void => {
+export const einsum = async (context: ComputeContext, attributes: EinsumAttributes): Promise<void> => {
   const einsumEquation = new EinsumEquation(context.inputs, attributes.equation);
   const outputShape = einsumEquation.outputDims;
   const inputShapes = context.inputs.map((input, _) => input.dims);
-  context.compute(createEinsumProgramInfo(inputShapes, context.inputs[0].dataType, einsumEquation, outputShape));
+  await context.compute(createEinsumProgramInfo(inputShapes, context.inputs[0].dataType, einsumEquation, outputShape));
 };
 
 export const parseEinsumAttributes = (attributes: Record<string, unknown>): EinsumAttributes => {

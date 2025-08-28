@@ -243,8 +243,8 @@ const createPadAttributesFromInputs = (inputs: readonly TensorView[], attributes
   }
 };
 
-export const pad = (context: ComputeContext, attributes: PadAttributes): void => {
+export const pad = async (context: ComputeContext, attributes: PadAttributes): Promise<void> => {
   validateInputs(context.inputs);
   const updatedAttributes = createPadAttributesFromInputs(context.inputs, attributes);
-  context.compute(createPadProgramInfo(context.inputs, updatedAttributes), { inputs: [0] });
+  await context.compute(createPadProgramInfo(context.inputs, updatedAttributes), { inputs: [0] });
 };

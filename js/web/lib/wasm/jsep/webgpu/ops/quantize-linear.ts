@@ -228,9 +228,12 @@ const createDequantizeLinearProgramInfo = (
   };
 };
 
-export const dequantizeLinear = (context: ComputeContext, attributes: DequantizeLinerAttributes): void => {
+export const dequantizeLinear = async (
+  context: ComputeContext,
+  attributes: DequantizeLinerAttributes,
+): Promise<void> => {
   validateInputs(context.inputs, attributes);
-  context.compute(createDequantizeLinearProgramInfo(context.inputs, attributes));
+  await context.compute(createDequantizeLinearProgramInfo(context.inputs, attributes));
 };
 
 export const parseDequantizeLinearAttributes = (attributes: Record<string, unknown>): DequantizeLinerAttributes =>
