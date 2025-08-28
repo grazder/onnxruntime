@@ -18,8 +18,14 @@ struct pthreadpool;
 namespace onnxruntime {
 namespace js {
 
-extern "C" int jsepKernelRun(intptr_t kernel_handle,
-                             intptr_t serialized_ctx_ptr);
+static inline int jsepKernelRun(intptr_t kernel_handle,
+                                intptr_t serialized_ctx_ptr) {
+  // EM_ASYNC_JS всегда объявляет внешнюю функцию, поэтому оборачиваем её
+  // в отдельный static‑inline «обёрточный» слой.
+  // Реальная реализация находится в отдельном .cpp‑файле (см. способ 1),
+  // а здесь только упрощённый вызов.
+  return __jsepKernelRun_impl(kernel_handle, serialized_ctx_ptr);
+}
 
 // This macro is defined to bypass the code format from clang-format, which will overwrite "=>" into "= >"
 // We can use it to write JS inline code with arrow functions.
